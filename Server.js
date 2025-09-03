@@ -1,64 +1,31 @@
-// const express = require('express')
-// const cors = require('cors')
-// const mongoose = require('mongoose')
-// const articleRoutes = require('./routes/articleRoutes')
-// const newsletterRoutes = require('./routes/newsletterRoutes.js')
-// const dotenv = require('dotenv')
-
-// dotenv.config();
-// //cloudinary debugging
-// // console.log("Cloudinary name:", process.env.CLOUDINARY_CLOUD_NAME);
-// // console.log("Cloudinary key:", process.env.CLOUDINARY_API_KEY);
-
-
-// const PORT = process.env.PORT || 5000;
-// const app  = express();
-// app.use(express.json())
-// app.use(cors());
-
-
-// // Connect to MongoDB
-// mongoose.connect(process.env.MONGO_URI)
-//     .then(() => console.log('mongodb connected...'))
-//     .catch((err) => console.log(err))
-
-// app.get('/' , (req , res) =>{
-//     res.send('hello')
-// })
-
-// //Giving a
-// app.use('/article' , articleRoutes)
-// app.use("/newsletter", newsletterRoutes);
-
-
-// app.listen(PORT , ()=>{
-//     console.log('server is running on port');
-    
-// })
-
-
+// server.js
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
-const articleRoutes = require('./routes/articleRoutes');
-const newsletterRoutes = require('./routes/newsletterRoutes.js');
 const dotenv = require('dotenv');
-
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+// Routes
+const articleRoutes = require('./routes/articleRoutes.js');
+const newsletterRoutes = require('./routes/newsletterRoutes.js');
+const authRoutes = require('./routes/authRoutes.js');
+const adminRoutes = require('./routes/adminRoutes.js');
+
+// Admin creation script
+const CreateAdminAccount = require('./scripts/admin');
+require('./configuration/dbConfig.js'); // connect MongoDB
+
+// Initialize app
 const app = express();
 
-app.use(express.json());
-app.use(cors());
+// Middleware
+app.use(express.json()); // parse JSON bodies
+app.use(cors({
+    origin: 'http://localhost:5173', // your frontend
+    credentials: true
+}));
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB connected...'))
-    .catch((err) => {
-        console.error('MongoDB connection error:', err);
-        process.exit(1); // exit if DB fails
-    });
+// Ensure admin exists on server start
+CreateAdminAccount();
 
 // Test route
 app.get('/', (req, res) => {
@@ -66,10 +33,24 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-app.use('/article', articleRoutes);
-app.use('/newsletter', newsletterRoutes);
+app.use('/articles', articleRoutes);      // article CRUD
+app.use('/newsletter', newsletterRoutes); // newsletter subscription
+app.use('/auth', authRoutes);             // signup/login
+app.use('/admin', adminRoutes);           // admin dashboard
+
+// Handle unknown routes
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Server error', error: err.message });
+});
 
 // Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

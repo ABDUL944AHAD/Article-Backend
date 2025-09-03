@@ -1,17 +1,3 @@
-// const mongoose = require('mongoose')
-
-
-// const articleSchema = new mongoose.Schema({
-//     articleName:String,
-//     authorName:String,
-//     category:String,
-//     articleContent:String,
-// })
-
-// module.exports = mongoose.model("Article" , articleSchema)
-
-
-// models/Article.js
 
 const mongoose = require('mongoose')
 const articleSchema = new mongoose.Schema({
@@ -34,6 +20,11 @@ const articleSchema = new mongoose.Schema({
     images: {
         type: [String], // ✅ store multiple image URLs
         default: [],
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId, // ✅ Reference to User
+        ref: "User",
+        required: true,
     },
     createdAt: {
         type: Date,
