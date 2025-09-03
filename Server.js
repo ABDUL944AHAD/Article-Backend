@@ -20,7 +20,7 @@ const app = express();
 // Middleware
 app.use(express.json()); // parse JSON bodies
 app.use(cors({
-    origin: 'http://localhost:5173', // your frontend
+    origin: 'http://localhost:5173', 'https://articlewrite.netlify.app' , // your frontend
     credentials: true
 }));
 
