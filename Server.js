@@ -29,12 +29,14 @@ app.use(cors({
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            // Instead of just error, log the blocked origin
+            console.log('Blocked by CORS:', origin);
+            callback(new Error('CORS not allowed for this origin'), false);
         }
     },
     credentials: true
 }));
-// ...existing code...
+
 
 // Ensure admin exists on server start
 CreateAdminAccount();
