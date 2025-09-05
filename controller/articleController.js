@@ -149,19 +149,19 @@ exports.getMyArticles = async (req, res) => {
 // Create a new article
 exports.saveArticle = async (req, res) => {
     try {
-        const { articleName, authorName, category, articleContent, images } = req.body;
+        const { articleName, category, articleContent, images } = req.body;
 
-        if (!articleName || !authorName || !category || !articleContent) {
+        if (!articleName || !category || !articleContent) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
         const newArticle = await articleModel.create({
             articleName,
-            authorName,
+            authorName: req.user.name,    // ✅ dynamic from logged-in user
             category,
             articleContent,
             images: images || [],
-            createdBy: req.user._id
+            createdBy: req.user._id       // ✅ comes from token
         });
 
         res.status(201).json({
