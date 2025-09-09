@@ -212,20 +212,26 @@ exports.updateArticle = async (req, res) => {
         const { id } = req.params;
         const article = await articleModel.findById(id);
 
-        if (!article) return res.status(404).json({ message: "Article not found" });
+        if (!article) {
+            return res.status(404).json({ message: "Article not found" });
+        }
 
-        // If user is not admin and not the creator → forbidden
-        if (req.user.role !== 'admin' && article.createdBy.toString() !== req.user._id.toString()) {
+        // Allow if user is admin OR the author of the article
+        if (req.user.role !== "admin" && article.createdBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: "Forbidden: You can only edit your own articles" });
         }
 
+        // Update fields
         const updatedArticle = await articleModel.findByIdAndUpdate(
             id,
             { ...req.body },
             { new: true, runValidators: true }
         );
 
-        res.status(200).json({ message: "Article updated successfully", data: updatedArticle });
+        res.status(200).json({
+            message: "Article updated successfully",
+            data: updatedArticle
+        });
     } catch (err) {
         res.status(500).json({ message: "Server error", error: err.message });
     }
@@ -237,15 +243,22 @@ exports.deleteArticle = async (req, res) => {
         const { id } = req.params;
         const article = await articleModel.findById(id);
 
-        if (!article) return res.status(404).json({ message: "Article not found" });
+        if (!article) {
+            return res.status(404).json({ message: "Article not found" });
+        }
 
-        // If user is not admin and not the creator → forbidden
-        if (req.user.role !== 'admin' && article.createdBy.toString() !== req.user._id.toString()) {
+        // Allow if user is admin OR the author of the article
+        if (req.user.role !== "admin" && article.createdBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: "Forbidden: You can only delete your own articles" });
         }
 
-        await article.remove();
-        res.status(200).json({ message: "Article deleted successfully", data: article });
+        // ✅ Delete using Model method
+        await articleModel.findByIdAndDelete(id);
+
+        res.status(200).json({
+            message: "Article deleted successfully",
+            data: article
+        });
     } catch (err) {
         res.status(500).json({ message: "Server error", error: err.message });
     }
